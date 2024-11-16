@@ -32,6 +32,11 @@ const routes = [
         name: 'profile',
         component: () => import('@/views/Profile.vue'),
     },
+    {
+        path: '/about',
+        name: 'about',
+        component: () => import('@/views/AboutUs.vue'), // Thêm đường dẫn tới AboutUs.vue
+      }
 ];
 
 const router = createRouter({

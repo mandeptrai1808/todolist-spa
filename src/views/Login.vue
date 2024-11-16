@@ -54,6 +54,7 @@ async function handleLogin() {
     // Phát sự kiện thông báo user info đã thay đổi
 
     // Điều hướng tới trang chính sau khi đăng nhập thành công
+    
     router.push({ name: 'home' });
   } catch (error) {
     console.error('Login failed:', error.message);

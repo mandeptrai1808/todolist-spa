@@ -12,10 +12,18 @@
             <i class="fas fa-home"></i>
           </router-link>
         </li>
+       
         <li class="nav-item">
           <router-link :to="{ name: 'admin' }" class="nav-link" v-if="isAdmin">
             Admin
             <i class="fas fa-user-cog"></i>
+          </router-link>
+        </li>
+
+         <li class="nav-item">
+          <router-link :to="{ name: 'about' }" class="nav-link">
+            About Us
+            <i class="fas fa-info-circle"></i>
           </router-link>
         </li>
       </div>
@@ -53,7 +61,10 @@ import { userState } from '@/eventBus'; // Import EventBus
 import { Dropdown } from 'bootstrap';
 
 const user = ref(JSON.parse(localStorage.getItem('user')) || null);
-const isAdmin = computed(() => user?.value?.role === 'admin');
+console.log(user.value?.role)
+const isAdmin = ref(false); // Sử dụng ref thay vì computed
+isAdmin.value = user.value?.role === 'admin';
+
 const router = useRouter();
 
 

@@ -52,7 +52,7 @@ function makeApiService() {
 
     // Lưu token vào localStorage
     localStorage.setItem('token', token);
-
+    localStorage.setItem('isLogin', 'true');
     // Gọi getUserInfo để lấy thông tin người dùng
     const userInfo = await getUserInfo(token);
 
@@ -128,17 +128,38 @@ function makeApiService() {
   }
 
   /**
+ * Update a user by ID (Admin only)
+ * @param {string} userId - ID of the user to update
+ * @param {Object} updatedData - Updated user data
+ * @param {string} token - Authorization token
+ * @returns {Promise<any>} - Updated user information
+ */
+async function updateUserById(userId, updatedData, token) {
+  const url = `${baseUrl}/auth/admin/usersbyid/${userId}`;
+  return efetch(url, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(updatedData),
+  });
+}
+
+
+  /**
    * Get a list of all users (Admin only)
    * @param {string} token - Authorization token
    * @returns {Promise<any>} - List of users
    */
   async function getAllUsers(token) {
     const url = `${baseUrl}/auth/admin/users`;
-    return efetch(url, {
+    const data = await efetch(url, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
     });
+    return data
   }
 
   /**
@@ -251,7 +272,8 @@ async function getUserTasks() {
     createTask,
     updateTask,
     deleteTask,
-    getUserTasks
+    getUserTasks,
+    updateUserById
   };
 }
 
