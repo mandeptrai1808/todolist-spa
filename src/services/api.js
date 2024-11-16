@@ -3,7 +3,6 @@
  * @param {string} url - The URL to fetch
  * @param {RequestInit} options - Additional fetch options
  * @returns {Promise<any>} - Parsed JSON response
- * 
  */
 import { eventBus, userState } from '@/eventBus';
 
@@ -11,18 +10,16 @@ async function efetch(url, options = {}) {
   let result = {};
   let json = {};
   try {
-    result = await fetch(url, options); 
+    result = await fetch(url, options);
     json = await result.json();
-    console.log(json)
   } catch (error) {
     throw new Error(error.message || 'Network error');
   }
-  
+
   if (!result.ok) {
     throw new Error(json.message || 'Error fetching data');
-  } else console.log("error here")
-  console.log('Parsed JSON Response:', json.data);
-  if (json.user) return json.user
+  }
+
   return json.data;
 }
 
@@ -45,30 +42,31 @@ function makeApiService() {
       },
       body: JSON.stringify(credentials),
     });
-  
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Login failed');
     }
-  
+
     const { token } = await response.json();
-  
+
     // Lưu token vào localStorage
     localStorage.setItem('token', token);
-  
+
     // Gọi getUserInfo để lấy thông tin người dùng
     const userInfo = await getUserInfo(token);
-    console.log(userInfo)
+
     // Lưu thông tin người dùng vào localStorage
     localStorage.setItem('user', JSON.stringify(userInfo));
-  // Cập nhật userState
-  userState.user = userInfo;
 
-  // Phát sự kiện để cập nhật giao diện
-  eventBus.emit('user-updated', userInfo);
+    // Cập nhật userState
+    userState.user = userInfo;
+
+    // Phát sự kiện để cập nhật giao diện
+    eventBus.emit('user-updated', userInfo);
+
     return userInfo;
   }
-  
 
   /**
    * Register a new user
@@ -101,11 +99,12 @@ function makeApiService() {
   }
 
   /**
-   * Logout the user (optional server logout if implemented)
+   * Logout the user
    * @returns {Promise<void>}
    */
   async function logout() {
     localStorage.removeItem('token'); // Remove token from localStorage
+    localStorage.removeItem('user'); // Remove user info from localStorage
     console.log('User logged out');
   }
 
@@ -158,6 +157,88 @@ function makeApiService() {
     });
   }
 
+  /**
+   * Fetch all tasks
+   * @returns {Promise<any>} - List of tasks
+   */
+  async function getTasks() {
+    const url = `${baseUrl}/tasks`;
+    console.log("task url:",url)
+    const tasks = await efetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      },
+    });
+    console.log('Tasks fetched from API:', tasks); // Debug dữ liệu
+    return tasks; // Đảm bảo trả về dữ liệu
+  }
+
+  /**
+ * Fetch tasks for the currently logged-in user
+ * @returns {Promise<any>} - List of tasks for the current user
+ */
+async function getUserTasks() {
+  const url = `${baseUrl}/tasks/my-tasks`; // API endpoint lấy task của user
+  return efetch(url, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('token')}`, // Đính kèm token để xác thực
+    },
+  });
+}
+
+  /**
+   * Create a new task
+   * @param {Object} task - Task data
+   * @returns {Promise<any>} - Created task
+   */
+  async function createTask(task) {
+    console.log(task)
+    const url = `${baseUrl}/tasks`;
+    return efetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      },
+      body: JSON.stringify(task),
+    });
+  }
+
+  /**
+   * Update a task by ID
+   * @param {string} taskId - ID of the task to update
+   * @param {Object} updatedTask - Updated task data
+   * @returns {Promise<any>} - Updated task
+   */
+  async function updateTask(taskId, updatedTask) {
+    const url = `${baseUrl}/tasks/${taskId}`;
+    return efetch(url, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      },
+      body: JSON.stringify(updatedTask),
+    });
+  }
+
+  /**
+   * Delete a task by ID
+   * @param {string} taskId - ID of the task to delete
+   * @returns {Promise<any>} - Delete confirmation
+   */
+  async function deleteTask(taskId) {
+    const url = `${baseUrl}/tasks/${taskId}`;
+    return efetch(url, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      },
+    });
+  }
+
   return {
     login,
     register,
@@ -166,6 +247,11 @@ function makeApiService() {
     updateUser,
     getAllUsers,
     deleteUser,
+    getTasks,
+    createTask,
+    updateTask,
+    deleteTask,
+    getUserTasks
   };
 }
 

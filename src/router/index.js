@@ -11,18 +11,16 @@ const routes = [
         path: '/register',
         name: 'register',
         component: () => import('@/views/Register.vue'), // Trang Đăng ký
-      },
+    },
     {
         path: '/admin',
         name: 'admin',
         component: () => import('@/views/Admin.vue'), // Trang Admin
     },
-  
-      
     {
         path: '/home',
         name: 'home',
-        component: () => import('@/views/Home.vue'), // Trang Home (sẽ thêm sau)
+        component: () => import('@/views/Home.vue'), // Trang Home
     },
     {
         path: '/:pathMatch(.*)*',
@@ -33,8 +31,7 @@ const routes = [
         path: '/profile',
         name: 'profile',
         component: () => import('@/views/Profile.vue'),
-      },
-      
+    },
 ];
 
 const router = createRouter({
@@ -42,14 +39,17 @@ const router = createRouter({
     routes,
 });
 
-
 // Middleware kiểm tra xác thực
 router.beforeEach((to, from, next) => {
     const isAuthenticated = !!localStorage.getItem('token'); // Kiểm tra token
-    if (to.name !== 'login' && !isAuthenticated) {
-        next('/'); 
+
+    // Các route không yêu cầu xác thực
+    const publicPages = ['login', 'register', 'notfound'];
+    
+    if (!publicPages.includes(to.name) && !isAuthenticated) {
+        next('/'); // Chuyển hướng về login nếu chưa đăng nhập
     } else {
-        next(); 
+        next(); // Cho phép tiếp tục
     }
 });
 
